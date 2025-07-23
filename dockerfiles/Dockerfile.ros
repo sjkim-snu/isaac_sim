@@ -1,0 +1,67 @@
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Set locale
+RUN apt-get update && apt-get install -y locales && \
+    locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+
+# Enable repositories
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository universe
+
+# Install GPU/OpenGL GUI related packages
+RUN apt-get update && apt-get install -y \
+    mesa-utils \
+    libgl1-mesa-glx \
+    libgl1-mesa-dri \
+    libglu1-mesa \
+    x11-xserver-utils \
+    curl
+
+# Install ROS 2 Humble
+RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
+    curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" && \
+    dpkg -i /tmp/ros2-apt-source.deb && \
+    apt-get update && apt-get upgrade -y && \ 
+    apt-get install -y \ 
+    ros-humble-desktop \ 
+    python3-colcon-common-extensions \
+    ros-humble-vision-msgs \
+    ros-humble-ackermann-msgs \
+    python3-rosdep \
+    python3-rosinstall \
+    python3-rosinstall-generator \
+    python3-wstool \
+    build-essential
+
+# Install additional packages
+RUN apt-get install -y sudo vim git python3-pip python3-dev
+
+# Install Python packages
+RUN pip3 install --no-cache-dir \
+    issacsim \
+    issacsim-kernel \
+    issacsim-app \
+    issacsim-asset \
+    issacsim-benchmark \
+    issacsim-code-editor \
+    issacsim-core \
+    issacsim-cortex \
+    issacsim-example \
+    issacsim-gui \
+    issacsim-replicator \
+    issacsim-rl \
+    issacsim-robot \
+    issacsim-robot-motion \
+    issacsim-robot-setup \
+    issacsim-ros2 \
+    issacsim-sensor \
+    issacsim-storage \
+    issacsim-template \
+    issacsim-test \
+    issacsim-utils \

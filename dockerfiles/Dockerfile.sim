@@ -1,0 +1,4 @@
+FROM nvcr.io/nvidia/isaac-sim:4.5.0
+
+LABEL maintainer="ksjsms@snu.ac.kr"
+
