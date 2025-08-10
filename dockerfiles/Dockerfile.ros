@@ -28,8 +28,8 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
     curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" && \
     dpkg -i /tmp/ros2-apt-source.deb && \
     apt-get update && apt-get upgrade -y && \ 
-    apt-get install -y \ 
-    ros-humble-desktop \ 
+    apt-get install -y --fix-missing \ 
+    ros-humble-ros-base \ 
     python3-colcon-common-extensions \
     ros-humble-vision-msgs \
     ros-humble-ackermann-msgs \
@@ -42,26 +42,33 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
 # Install additional packages
 RUN apt-get install -y sudo vim git python3-pip python3-dev
 
-# Install Python packages
-RUN pip3 install --no-cache-dir \
-    issacsim \
-    issacsim-kernel \
-    issacsim-app \
-    issacsim-asset \
-    issacsim-benchmark \
-    issacsim-code-editor \
-    issacsim-core \
-    issacsim-cortex \
-    issacsim-example \
-    issacsim-gui \
-    issacsim-replicator \
-    issacsim-rl \
-    issacsim-robot \
-    issacsim-robot-motion \
-    issacsim-robot-setup \
-    issacsim-ros2 \
-    issacsim-sensor \
-    issacsim-storage \
-    issacsim-template \
-    issacsim-test \
-    issacsim-utils \
+# Install Python packages for Reinforcement Learning
+RUN --mount=type=cache,target=/root/.cache/pip pip3 install \
+    opencv-python \
+    opencv-contrib-python \
+    torch \
+    torchvision \
+    torchaudio \
+    ultralytics \
+    numpy==1.26.4
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash ksj && \
+    usermod -aG sudo ksj && \
+    echo "ksj ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to the non-root user
+USER ksj
+
+# Set the working directory
+WORKDIR /workspace
+
+# Create setup script
+RUN echo '#!/bin/bash\n\
+    source /opt/ros/humble/setup.bash\n \
+    alias cbs="colcon build --symlink-install"\n \
+    alias rt="ros2 topic list"\n \
+    alias re="ros2 topic echo"\n \
+    alias rn="ros2 node list"\n \
+    alias ros="source ./install/setup.bash"\n \
+    ' > /home/ksj/.bashrc

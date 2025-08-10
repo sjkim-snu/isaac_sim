@@ -1,0 +1,86 @@
+services:
+  issacsim:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.sim
+    container_name: issacsim_container
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - ACCEPT_EULA=Y
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ./isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \
+      - ./isaac-sim/cache/ov:/root/.cache/ov:rw \
+      - ./isaac-sim/cache/pip:/root/.cache/pip:rw \
+      - ./isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw \
+      - ./isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw \
+      - ./isaac-sim/logs:/root/.nvidia-omniverse/logs:rw \
+      - ./isaac-sim/data:/root/.local/share/ov/data:rw \
+      - ./isaac-sim/documents:/root/Documents:rw \
+      - /dev/dri
+    command: >
+      bash -lc "isaacsim isaacsim.exp.full"
+    network_mode: host
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+
+  ros2:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.ros
+    container_name: ros2_container
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ./:/workspace
+    devices:
+      - /dev/dri
+      - "/dev/video0:/dev/video0"
+    group_add:
+      - video
+    network_mode: host
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+
+  px4:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.px4
+    container_name: px4_container
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ./PX4-Autopilot:/PX4-Autopilot
+    devices:
+      - /dev/dri
+    group_add:
+      - video
+    network_mode: host
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
