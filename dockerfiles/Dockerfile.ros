@@ -1,4 +1,5 @@
 FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+LABEL maintainer="ksjsms@snu.ac.kr"
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -61,7 +62,7 @@ RUN useradd -m -s /bin/bash ksj && \
 USER ksj
 
 # Set the working directory
-WORKDIR /workspace
+WORKDIR /ros_workspace
 
 # Create setup script
 RUN echo '#!/bin/bash\n\
